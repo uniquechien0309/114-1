@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小一國字複習區 - 隨機測驗</title>
+    <style>
+        /* CSS 變數定義 */
+        :root {
+            --primary-color: #4CAF50; /* 主色調: 綠色 (答對/確認) */
+            --secondary-color: #FFC107; /* 次要色調: 亮黃色 (強調) */
+            --background-light: #F1F8E9; /* 柔和背景色 */
+            --container-bg: #FFFFFF;
+            --text-dark: #333333;
+            --border-color: #E0E0E0;
+        }
+
+        /* 基礎樣式和排版 */
+        body {
+            font-family: '微軟正黑體', 'Microsoft JhengHei', sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: var(--background-light); 
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #d32f2f; 
+            font-size: 2.8em;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 測驗容器美化 */
+        #quiz-container {
+            width: 90%;
+            max-width: 700px;
+            border: 5px solid var(--secondary-color); 
+            padding: 40px 20px;
+            margin-top: 20px;
+            background-color: var(--container-bg);
+            border-radius: 25px; 
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1); 
+            transition: transform 0.3s;
+        }
+        
+        /* 題目區域 */
+        #question {
+            font-size: 1.8em;
+            margin-bottom: 35px;
+            padding: 15px;
+            border-bottom: 3px dashed var(--border-color);
+            color: #3f51b5; 
+        }
+        /* 修正題目語詞的字體大小和顏色，移除粗體 */
+        #question span {
+            font-size: 1.2em; 
+            color: #d9534f; /* 專門給 ( ? ) 語詞用紅色/橘色 */
+            font-weight: normal; 
+        }
+
+        /* 選項區域 */
+        #options-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px;
+            padding: 10px;
+        }
+
+        /* 選項按鈕美化 */
+        .option-btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 10px;
+            font-size: 2em; 
+            cursor: pointer;
+            background-color: #e3f2fd; 
+            color: var(--text-dark);
+            border: 2px solid #90caf9;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .option-btn:hover {
+            background-color: #c6e3ff; 
+            transform: translateY(-3px); 
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 開始按鈕樣式 */
+        #choiceModeBtn {
+            padding: 15px 40px;
+            font-size: 1.8em;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.2s, transform 0.2s;
+            margin-bottom: 30px;
+        }
+        #choiceModeBtn:hover {
+            background-color: #388E3C; 
+            transform: scale(1.05);
+        }
+
+        /* 底部進度條/結果顯示 */
+        .progress-text {
+            margin-top: 30px;
+            font-size: 1.2em;
+            color: #757575;
+        }
+        #results {
+            text-align: left;
+            padding: 20px;
+            background-color: #fff9e6;
+            border: 1px solid #ffeb3b;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 1.4em;
+        }
+        #results h3 {
+            color: #f57f17;
+            border-bottom: 2px solid #f57f17;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        #results ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        #results li {
+            margin-bottom: 5px;
+            color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📚 小一國字複習區✏️</h1>
+    <div class="mode-selection">
+        <button id="choiceModeBtn">開始</button> </div>
+
+    <div id="quiz-container">
+        <h2>點擊「開始」按鈕開始！</h2> </div>
+
+    <script>
+        const originalQuizData = [
+    { id: 1, word: "大", phrase: "大小", options: ["天", "太", "犬", "大"], correct: "大" },
+    { id: 2, word: "一", phrase: "拍一拍", options: ["工", "人", "丁", "一"], correct: "一" }, 
+    { id: 3, word: "學", phrase: "學校", options: ["覺", "孝", "字", "學"], correct: "學" }, 
+    { id: 4, word: "生", phrase: "學生", options: ["土", "牛", "主", "生"], correct: "生" }, 
+    { id: 5, word: "早", phrase: "早上", options: ["旦", "甲", "章", "早"], correct: "早" }, 
+    { id: 6, word: "上", phrase: "上下", options: ["正", "止", "卜", "上"], correct: "上" }, 
+    { id: 7, word: "媽", phrase: "媽媽", options: ["馬", "奶", "姐", "媽"], correct: "媽" }, 
+    { id: 8, word: "爸", phrase: "爸爸", options: ["父", "公", "八", "爸"], correct: "爸" }, 
+    { id: 9, word: "你", phrase: "你好", options: ["休", "們", "付", "你"], correct: "你" }, 
+    { id: 10, word: "我", phrase: "我們", options: ["找", "伐", "戈", "我"], correct: "我" }, 
+    { id: 11, word: "很", phrase: "很好", options: ["跟", "根", "良", "很"], correct: "很" }, 
+    { id: 12, word: "會", phrase: "學會", options: ["合", "今", "云", "會"], correct: "會" }, 
+    { id: 13, word: "說", phrase: "說話", options: ["兌", "稅", "悅", "說"], correct: "說" }, 
+    { id: 14, word: "拍", phrase: "拍手", options: ["怕", "白", "泊", "拍"], correct: "拍" }, 
+    { id: 15, word: "手", phrase: "拍手", options: ["毛", "千", "平", "手"], correct: "手" },
+    { id: 16, word: "左", phrase: "左邊", options: ["石", "有", "布", "左"], correct: "左" }, 
+    { id: 17, word: "右", phrase: "右手", options: ["石", "布", "在", "右"], correct: "右" }, 
+    { id: 18, word: "他", phrase: "他們", options: ["地", "池", "也", "他"], correct: "他" }, 
+    { id: 19, word: "也", phrase: "我也要", options: ["地", "池", "她", "也"], correct: "也" }, 
+    { id: 20, word: "下", phrase: "下課", options: ["左", "止", "卜", "下"], correct: "下" }, 
+    { id: 21, word: "這", phrase: "這裡", options: ["外", "者", "遠", "這"], correct: "這" }, 
+    { id: 22, word: "是", phrase: "他是誰", options: ["示", "日", "事", "是"], correct: "是" }, 
+    { id: 23, word: "誰", phrase: "誰的", options: ["難", "隹", "言", "誰"], correct: "誰" }, 
+    { id: 24, word: "的", phrase: "我的", options: ["得", "地", "白", "的"], correct: "的" }, 
+    { id: 25, word: "分", phrase: "分享", options: ["公", "刀", "粉", "分"], correct: "分" }, 
+    { id: 26, word: "好", phrase: "做好事", options: ["女", "子", "少", "好"], correct: "好" }, 
+    { id: 27, word: "了", phrase: "多了一個", options: ["子", "力", "子", "了"], correct: "了" },
+    { id: 28, "word": "多", phrase: "多少", options: ["夕", "少", "移", "多"], correct: "多" }, 
+    { id: 29, "word": "個", phrase: "大個子", options: ["固", "件", "各", "個"], correct: "個" }, 
+    { id: 30, "word": "秋", phrase: "秋天", options: ["火", "球", "移", "秋"], correct: "秋" }, 
+    { id: 31, "word": "十", phrase: "十個", options: ["圭", "土", "士", "十"], correct: "十" }, 
+    { id: 32, "word": "山", phrase: "高山", options: ["出", "三", "川", "山"], correct: "山" },
+    { id: 33, "word": "到", phrase: "到家", options: ["刀", "道", "倒", "到"], correct: "到" }, 
+    { id: 34, "word": "朋", phrase: "朋友", options: ["月", "鵬", "崩", "朋"], correct: "朋" }, 
+    { id: 35, "word": "友", phrase: "朋友", options: ["又", "有", "右", "友"], correct: "友" }, 
+    { id: 36, "word": "們", phrase: "我們", options: ["間", "門", "問", "們"], correct: "們" }, 
+    { id: 37, "word": "起", phrase: "起來", options: ["超", "己", "已", "起"], correct: "起" }, 
+    { id: 38, "word": "小", phrase: "小貓", options: ["少", "水", "巴", "小"], correct: "小" }, 
+    { id: 39, "word": "課", phrase: "上課", options: ["言", "果", "棵", "課"], correct: "課" }, 
+    { id: 40, "word": "兩", phrase: "兩個", options: ["入", "雨", "人", "兩"], correct: "兩" }, 
+    { id: 41, "word": "看", phrase: "看見", options: ["目", "著", "者", "看"], correct: "看" }, 
+    { id: 42, "word": "找", phrase: "尋找", options: ["我", "戈", "手", "找"], correct: "找" }, 
+    { id: 43, "word": "外", phrase: "門外", options: ["卜", "夕", "卻", "外"], correct: "外" }, 
+    { id: 44, "word": "有", phrase: "沒有", options: ["月", "沒", "友", "有"], correct: "有" },
+    { id: 45, "word": "什", phrase: "什麼", options: ["十", "人", "升", "什"], correct: "什" }, 
+    { id: 46, "word": "麼", phrase: "什麼", options: ["麻", "門", "魔", "麼"], correct: "麼" }, 
+    { id: 47, "word": "不", phrase: "不會", options: ["部", "布", "下", "不"], correct: "不" }, 
+    { id: 48, "word": "同", phrase: "不同", options: ["田", "口", "司", "同"], correct: "同" },
+    { id: 49, "word": "晚", phrase: "晚上", options: ["免", "兔", "日", "晚"], correct: "晚" }, 
+    { id: 50, "word": "花", phrase: "花朵", options: ["化", "華", "苦", "花"], correct: "花" }, 
+    { id: 51, "word": "紅", phrase: "紅色", options: ["工", "洪", "江", "紅"], correct: "紅" }, 
+    { id: 52, "word": "在", phrase: "在那裡", options: ["右", "再", "左", "在"], correct: "在" }, 
+    { id: 53, "word": "向", phrase: "方向", options: ["巷", "像", "香", "向"], correct: "向" },
+    { id: 54, "word": "頭", phrase: "手指頭", options: ["頁", "買", "投", "頭"], correct: "頭" }, 
+    { id: 55, "word": "要", phrase: "想要", options: ["西", "腰", "襾", "要"], correct: "要" }, 
+    { id: 56, "word": "靜", phrase: "安靜", options: ["爭", "淨", "清", "靜"], correct: "靜" }, 
+    { id: 57, word: "天", phrase: "天空", options: ["夫", "人", "大", "天"], correct: "天" },
+    { id: 58, "word": "空", phrase: "天空", options: ["穴", "工", "空", "雲"], correct: "空" }, 
+    { id: 59, "word": "雲", phrase: "雲朵", options: ["芸", "雨", "電", "雲"], correct: "雲" },
+    { id: 60, "word": "水", phrase: "喝水", options: ["永", "小", "冰", "水"], correct: "水" },
+    { id: 61, "word": "鳥", phrase: "小鳥", options: ["烏", "鳴", "鳥"], correct: "鳥" },
+    { id: 62, "word": "草", phrase: "小草", options: ["早", "苦", "日", "草"], correct: "草" }, 
+    { id: 63, "word": "先", phrase: "先後", options: ["兒", "光", "元", "先"], correct: "先" }, 
+    { id: 64, "word": "完", phrase: "完成", options: ["元", "全", "免", "完"], correct: "完" }, 
+    { id: 65, "word": "再", phrase: "再見", options: ["土", "在", "去", "再"], correct: "再" },
+    { id: 66, "word": "聽", phrase: "聽見", options: ["耳", "口", "貞", "聽"], correct: "聽" },
+    { id: 67, "word": "沒", phrase: "沒有", options: ["枚", "玫", "末", "沒"], correct: "沒" },
+    { id: 68, "word": "正", phrase: "正在", options: ["止", "只", "疋", "正"], correct: "正" }, 
+    { id: 69, "word": "唱", phrase: "唱歌", options: ["昌", "晶", "目", "唱"], correct: "唱" }, 
+    { id: 70, "word": "著", phrase: "寫著", options: ["箸", "土", "者", "著"], correct: "著" },
+    { id: 71, "word": "快", phrase: "快跑", options: ["央", "泱", "決", "快"], correct: "快" },
+    { id: 72, "word": "歌", phrase: "唱歌", options: ["可", "哥", "河", "歌"], correct: "歌" }, 
+    { id: 73, "word": "出", phrase: "出來", options: ["高", "山", "入", "出"], correct: "出" },
+    { id: 74, "word": "新", phrase: "新鮮", options: ["斤", "親", "立", "新"], correct: "新" }, 
+    { id: 75, "word": "芽", phrase: "發芽", options: ["牙", "芽", "苦", "菜"], correct: "芽" }, // 修正：避免選項重複
+    { id: 76, "word": "聞", phrase: "見聞", options: ["問", "門", "間", "聞"], correct: "聞" },
+    { id: 77, "word": "身", phrase: "全身", options: ["射", "躬", "伸", "身"], correct: "身" }, 
+    { id: 78, "word": "香", phrase: "香味", options: ["想", "春", "禾", "香"], correct: "香" },
+    { id: 79, "word": "呢", phrase: "你呢", options: ["口", "尼", "泥", "呢"], correct: "呢" }, 
+    { id: 80, "word": "音", phrase: "聲音", options: ["立", "言", "今", "音"], correct: "音" },
+    { id: 81, "word": "始", phrase: "開始", options: ["使", "矢", "口", "始"], correct: "始" }, 
+    { id: 82, "word": "來", phrase: "未來", options: ["末", "米", "未", "來"], correct: "來" }, 
+    { id: 83, "word": "重", phrase: "輕重", options: ["理", "里", "種", "重"], correct: "重" }, 
+    { id: 84, "word": "短", phrase: "長短", options: ["知", "放", "豆", "短"], correct: "短" },
+    { id: 85, "word": "過", phrase: "經過", options: ["嘓", "國", "鍋", "過"], correct: "過" },
+    { id: 86, "word": "後", phrase: "後面", options: ["後", "術", "行", "候"], correct: "後" }, 
+    { id: 87, "word": "吃", phrase: "吃飯", options: ["口", "乞", "幾", "吃"], correct: "吃" },
+    { id: 88, "word": "菜", phrase: "青菜", options: ["采", "米", "木", "菜"], correct: "菜" }, 
+    { id: 89, "word": "就", phrase: "我就是", options: ["九", "京", "啾", "就"], correct: "就" }, 
+    { id: 90, "word": "桌", phrase: "桌子", options: ["木", "早", "卓", "桌"], correct: "桌" }, 
+    { id: 91, "word": "真", phrase: "真的", options: ["目", "具", "且", "真"], correct: "真" },
+    { id: 92, "word": "回", phrase: "回家", options: ["口", "虫", "會", "回"], correct: "回" },
+    { id: 93, "word": "家", phrase: "家人", options: ["豕", "空", "室", "家"], correct: "家" }, 
+    { id: 94, "word": "脫", phrase: "脫鞋", options: ["兌", "兄", "說", "脫"], correct: "脫" }, 
+    { id: 95, "word": "爸", phrase: "八千元", options: ["爸", "八", "巴", "吧"], correct: "八" }, 
+    { id: 96, "word": "像", phrase: "好像", options: ["人", "相", "象", "像"], correct: "像" }, 
+    { id: 97, "word": "船", phrase: "坐船", options: ["舟", "傳", "專", "船"], correct: "船" }, 
+    { id: 98, "word": "暖", phrase: "溫暖", options: ["日", "援", "緩", "暖"], correct: "暖" }, 
+    { id: 99, "word": "種", phrase: "種子", options: ["禾", "重", "仲", "種"], correct: "種" }, 
+    { id: 100, "word": "問", phrase: "問答", options: ["間", "門", "聞", "問"], correct: "問" }, 
+    { id: 101, "word": "怎", phrase: "怎麼", options: ["想", "心", "乍", "怎"], correct: "怎" },
+    { id: 102, "word": "做", phrase: "做功課", options: ["座", "作", "坐", "做"], correct: "做" },
+    { id: 103, "word": "才", phrase: "才不要", options: ["手", "木", "財", "才"], correct: "才" },
+    { id: 104, "word": "需", phrase: "需要", options: ["雨", "而", "滿", "需"], correct: "需" },
+    { id: 105, "word": "光", phrase: "亮光", options: ["兒", "先", "元", "光"], correct: "光" }, 
+    { id: 106, "word": "話", phrase: "說話", options: ["言", "語", "畫", "話"], correct: "話" },
+    { id: 107, "word": "班", phrase: "班級", options: ["王", "斑", "半", "班"], correct: "班" }, 
+    { id: 108, "word": "床", phrase: "床邊", options: ["廣", "匠", "房", "床"], correct: "床" }, 
+    { id: 109, "word": "第", phrase: "第一名", options: ["竹", "弟", "第", "策"], correct: "第" },
+    { id: 110, "word": "謝", phrase: "謝謝", options: ["街", "射", "榭", "謝"], correct: "謝" }, 
+    { id: 111, "word": "想", phrase: "想法", options: ["像", "相", "心", "想"], correct: "想" },
+    { id: 112, "word": "燈", phrase: "開燈", options: ["登", "澄", "橙", "燈"], correct: "燈" }, 
+    { id: 113, "word": "半", phrase: "分一半", options: ["牛", "伴", "伴", "半"], correct: "半" }, 
+    { id: 114, "word": "停", phrase: "停下來", options: ["聽", "亭", "平", "停"], correct: "停" },
+    { id: 115, "word": "休", phrase: "休息", options: ["人", "修", "休", "木"], correct: "休" },
+    { id: 116, "word": "息", phrase: "休息", options: ["習", "自", "希", "息"], correct: "息" }
+];
+
+        const MAX_QUESTIONS = 10;
+        const quizContainer = document.getElementById('quiz-container');
+        const choiceModeBtn = document.getElementById('choiceModeBtn');
+        
+        let currentQuizIndex = 0;
+        let quizSession = []; // 儲存本次練習的 10 題
+        let score = {
+            correct: 0,
+            incorrect: 0,
+            wrongAnswers: [] // 儲存錯誤的國字
+        };
+
+        // --- 通用函式：陣列洗牌 (Fisher-Yates) ---
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // --- 初始化新的測驗 ---
+        function startNewQuiz() {
+            // 1. 洗牌並取出前 10 題
+            const shuffledData = shuffleArray(originalQuizData);
+            quizSession = shuffledData.slice(0, MAX_QUESTIONS);
+            
+            // 2. 重置計分器
+            score = { correct: 0, incorrect: 0, wrongAnswers: [] };
+            currentQuizIndex = 0;
+            
+            // 3. 載入第一題
+            loadCurrentQuiz();
+        }
+
+        // --- 載入目前的題目 ---
+        function loadCurrentQuiz() {
+            if (currentQuizIndex >= MAX_QUESTIONS) {
+                showResults();
+                return;
+            }
+
+            const quiz = quizSession[currentQuizIndex];
+            
+            // 關鍵修正：將 quiz.phrase 中的正確答案替換為 ( ? )，且沒有星號
+            const blankedPhrase = quiz.phrase.replace(quiz.word, '(<span style="color:red">?</span>)');
+            
+            // 隨機打亂選項順序
+            const shuffledOptions = shuffleArray([...quiz.options]); 
+
+            let optionsHtml = '';
+            shuffledOptions.forEach(option => {
+                // 每個選項都綁定 checkAnswer 函式
+                optionsHtml += `<button class="option-btn" onclick="checkAnswer(this, '${option}', '${quiz.correct}')">${option}</button>`;
+            });
+
+            // 移除題目語詞周圍的 ** 符號
+            quizContainer.innerHTML = `
+                <div id="question">請選出正確的字來完成語詞：<span style="color:#d9534f">${blankedPhrase}</span></div>
+                <div id="options-area">${optionsHtml}</div>
+                <p class="progress-text">第 ${currentQuizIndex + 1} 題 / 共 ${MAX_QUESTIONS} 題</p>
+            `;
+        }
+
+        // --- 檢查答案並計分 ---
+        function checkAnswer(button, selected, correct) {
+            // 暫時禁用所有選項按鈕，防止重複點擊
+            document.querySelectorAll('.option-btn').forEach(btn => btn.onclick = null);
+
+            if (selected === correct) {
+                score.correct++;
+                button.style.backgroundColor = '#d4edda'; // 答對顯示淺綠色
+                button.style.border = '2px solid var(--primary-color)';
+            } else {
+                score.incorrect++;
+                
+                // 記錄錯誤題目：語詞中應該填寫的正確國字
+                const errorPhrase = quizSession[currentQuizIndex].phrase.replace(correct, '(?)');
+                score.wrongAnswers.push(errorPhrase + ' → ' + correct); 
+
+                button.style.backgroundColor = '#f8d7da'; // 答錯顯示淺紅色
+                button.style.border = '2px solid #dc3545';
+                
+                // 標示正確答案
+                document.querySelectorAll('.option-btn').forEach(btn => {
+                    if (btn.innerText === correct) {
+                         btn.style.backgroundColor = '#fff3cd'; // 正確答案顯示淺黃色
+                         btn.style.border = '2px solid #ffc300';
+                    }
+                });
+            }
+            
+            // 延遲 0.5 秒後進入下一題
+            setTimeout(() => {
+                currentQuizIndex++;
+                loadCurrentQuiz();
+            }, 1000);
+        }
+
+        // --- 顯示結果總結 ---
+        function showResults() {
+            let wrongListHtml = '';
+            if (score.wrongAnswers.length > 0) {
+                // 錯誤清單已經是包含語詞和正確答案的格式，直接顯示
+                wrongListHtml = `
+                    <p>這次答錯的題目（語詞 → 應寫的字）：</p>
+                    <ul style="list-style-type: decimal; padding-left: 20px;">
+                        ${score.wrongAnswers.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                `;
+            } else {
+                 wrongListHtml = '<p style="color:var(--primary-color); font-weight:bold;">100分！🎉</p>';
+            }
+
+            quizContainer.innerHTML = `
+                <div id="results">
+                    <h3>✅ 測驗結果</h3>
+                    <p>總題數：${MAX_QUESTIONS} 題</p>
+                    <p style="color:var(--primary-color); font-weight:bold;">答對：${score.correct} 題</p>
+                    <p style="color:#d32f2f; font-weight:bold;">答錯：${score.incorrect} 題</p>
+                    ${wrongListHtml}
+                </div>
+            `;
+        }
+
+        // --- 模式切換 (現在只剩下選擇題) ---
+        choiceModeBtn.addEventListener('click', startNewQuiz);
+
+    </script>
+
+</body>
+</html>
